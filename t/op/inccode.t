@@ -308,4 +308,20 @@ if ($can_fork) {
     require BBBLPLAST5;
 
     is ("@::bbblplast", "0 1 2 3 4 5", "All ran with a filter");
+
+    pop @INC;
+}
+
+# make sure recursive requires don't segfault
+{
+    my $i = 100000;
+    unshift @INC, sub {
+        if ($i > 0) {
+            $i--;
+            require($_[1]);
+        }
+    };
+    eval { require Something::That::Doesnt::Exist };
+    is($i, 0, "no segfaults");
+    shift @INC;
 }
