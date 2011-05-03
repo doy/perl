@@ -1138,31 +1138,25 @@ Perl_gv_fetchpvn_flags(pTHX_ const char *nambeg, STRLEN full_len, I32 flags,
 		    global = TRUE;
 		break;
 	    case 3:
-		if ((name[0] == 'I' && name[1] == 'N' && name[2] == 'C')
-		    || (name[0] == 'E' && name[1] == 'N' && name[2] == 'V')
-		    || (name[0] == 'S' && name[1] == 'I' && name[2] == 'G'))
+		if (strEQ(name, "INC")
+		    || strEQ(name, "ENV")
+		    || strEQ(name, "SIG"))
 		    global = TRUE;
 		break;
 	    case 4:
-		if (name[0] == 'A' && name[1] == 'R' && name[2] == 'G'
-		    && name[3] == 'V')
+		if (strEQ(name, "ARGV"))
 		    global = TRUE;
 		break;
 	    case 5:
-		if (name[0] == 'S' && name[1] == 'T' && name[2] == 'D'
-		    && name[3] == 'I' && name[4] == 'N')
+		if (strEQ(name, "STDIN"))
 		    global = TRUE;
 		break;
 	    case 6:
-		if ((name[0] == 'S' && name[1] == 'T' && name[2] == 'D')
-		    &&((name[3] == 'O' && name[4] == 'U' && name[5] == 'T')
-		       ||(name[3] == 'E' && name[4] == 'R' && name[5] == 'R')))
+		if (strEQ(name, "STDOUT") || strEQ(name, "STDERR"))
 		    global = TRUE;
 		break;
 	    case 7:
-		if (name[0] == 'A' && name[1] == 'R' && name[2] == 'G'
-		    && name[3] == 'V' && name[4] == 'O' && name[5] == 'U'
-		    && name[6] == 'T')
+		if (strEQ(name, "ARGVOUT"))
 		    global = TRUE;
 		break;
 	    }
@@ -1288,8 +1282,9 @@ Perl_gv_fetchpvn_flags(pTHX_ const char *nambeg, STRLEN full_len, I32 flags,
 
     /* set up magic where warranted */
     if (stash != PL_defstash) { /* not the main stash */
-	/* We only have to check for four names here: EXPORT, ISA, OVERLOAD
-	   and VERSION. All the others apply only to the main stash. */
+	/* The only names we have to check for here are ISA, OVERLOAD,
+	   VERSION, and any name starting with EXPORT (such as EXPORT_OK).
+	   All the others apply only to the main stash. */
 	if (len > 1) {
 	    const char * const name2 = name + 1;
 	    switch (*name) {
@@ -2565,7 +2560,7 @@ Perl_is_gv_magical_sv(pTHX_ SV *const name_sv, U32 flags)
 	const char * const name1 = name + 1;
 	switch (*name) {
 	case 'I':
-	    if (len == 3 && name[1] == 'S' && name[2] == 'A')
+	    if (len == 3 && strEQ(name1, "SA"))
 		goto yes;
 	    break;
 	case 'O':
@@ -2573,7 +2568,7 @@ Perl_is_gv_magical_sv(pTHX_ SV *const name_sv, U32 flags)
 		goto yes;
 	    break;
 	case 'S':
-	    if (len == 3 && name[1] == 'I' && name[2] == 'G')
+	    if (len == 3 && strEQ(name1, "IG"))
 		goto yes;
 	    break;
 	    /* Using ${^...} variables is likely to be sufficiently rare that
